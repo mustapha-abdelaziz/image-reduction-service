@@ -20,6 +20,12 @@ export async function createApp(): Promise<FastifyInstance> {
   });
 
   // Register plugins in order
+  // CORS - must be registered early
+  await app.register(import('@fastify/cors'), {
+    origin: config.NODE_ENV === 'development' ? true : false, // Allow all origins in dev
+    credentials: true,
+  });
+
   await app.register(import('@/plugins/tracing.js'));
   await app.register(import('@/plugins/security.js'));
   await app.register(import('@/plugins/rateLimit.js'));
