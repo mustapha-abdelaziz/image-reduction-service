@@ -15,8 +15,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production && \
+# Install ALL dependencies (including dev dependencies needed for build)
+RUN npm ci && \
     npm cache clean --force
 
 # Copy source
@@ -25,6 +25,10 @@ COPY src ./src
 
 # Build
 RUN npm run build
+
+# Install production dependencies only (in a separate step)
+RUN npm ci --omit=dev && \
+    npm cache clean --force
 
 # Production stage
 FROM node:20-alpine
@@ -42,7 +46,7 @@ RUN addgroup -g 1001 -S nodejs && \
 
 WORKDIR /app
 
-# Copy built application
+# Copy built application and production dependencies
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nodejs:nodejs /app/package*.json ./
