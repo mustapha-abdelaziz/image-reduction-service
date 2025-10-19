@@ -53,7 +53,7 @@ function convertToInternalRegion(simple: z.infer<typeof simpleRegionSchema>): Re
 
   const coordinates = isNormalized
     ? { x_norm: coords.x, y_norm: coords.y, w_norm: coords.width, h_norm: coords.height }
-    : { x: Math.floor(coords.x), y: Math.floor(coords.y), width: Math.floor(coords.width), height: Math.floor(coords.height) };
+    : { x: Math.round(coords.x), y: Math.round(coords.y), width: Math.round(coords.width), height: Math.round(coords.height) };
 
   if (simple.type === 'blur') {
     const sizeMap = { low: 'S' as const, medium: 'M' as const, high: 'L' as const };
@@ -151,8 +151,14 @@ const base64Controller: FastifyPluginAsync = async (fastify) => {
             });
           }
         } else {
-          // Pixel coordinates - clamp to image bounds
+          // Pixel coordinates - round decimals and clamp to image bounds
           const originalCoords = { ...coords };
+
+          // Round decimal coordinates to integers
+          coords.x = Math.round(coords.x);
+          coords.y = Math.round(coords.y);
+          coords.width = Math.round(coords.width);
+          coords.height = Math.round(coords.height);
 
           // Clamp x, y to be within image
           coords.x = Math.max(0, Math.min(imgWidth - 1, coords.x));

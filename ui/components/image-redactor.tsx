@@ -169,13 +169,20 @@ export function ImageRedactor() {
     const width = pos.x - startPos.x;
     const height = pos.y - startPos.y;
 
+    // Calculate the top-left corner and dimensions
+    // If width/height is negative, we're dragging left/up, so use current position as origin
+    const x = Math.min(startPos.x, pos.x);
+    const y = Math.min(startPos.y, pos.y);
+    const w = Math.abs(width);
+    const h = Math.abs(height);
+
     setCurrentRegion({
       ...currentRegion,
       coords: {
-        x: width < 0 ? pos.x : startPos.x,
-        y: height < 0 ? pos.y : startPos.y,
-        width: Math.abs(width),
-        height: Math.abs(height),
+        x,
+        y,
+        width: w,
+        height: h,
       },
     });
 

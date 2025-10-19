@@ -68,9 +68,11 @@ async function applyBlur(
   coords: PixelCoordinates,
   sigma: number
 ): Promise<sharp.Sharp> {
-  // Extract the region, blur it, and composite back
-  const region = await image
-    .clone()
+  // First convert to buffer to get the current state
+  const currentBuffer = await image.toBuffer();
+
+  // Extract the region from current state, blur it
+  const region = await sharp(currentBuffer)
     .extract({
       left: coords.x,
       top: coords.y,
@@ -80,7 +82,8 @@ async function applyBlur(
     .blur(sigma)
     .toBuffer();
 
-  return image.composite([{
+  // Composite blurred region back onto current image
+  return sharp(currentBuffer).composite([{
     input: region,
     left: coords.x,
     top: coords.y,
@@ -95,13 +98,15 @@ async function applyPixelate(
   coords: PixelCoordinates,
   blockSize: number
 ): Promise<sharp.Sharp> {
+  // First convert to buffer to get the current state
+  const currentBuffer = await image.toBuffer();
+
   // Calculate pixelation dimensions
   const pixelWidth = Math.max(1, Math.floor(coords.width / blockSize));
   const pixelHeight = Math.max(1, Math.floor(coords.height / blockSize));
 
-  // Extract region, pixelate, and composite back
-  const region = await image
-    .clone()
+  // Extract region from current state, pixelate it
+  const region = await sharp(currentBuffer)
     .extract({
       left: coords.x,
       top: coords.y,
@@ -112,7 +117,8 @@ async function applyPixelate(
     .resize(coords.width, coords.height, { kernel: 'nearest' })
     .toBuffer();
 
-  return image.composite([{
+  // Composite pixelated region back onto current image
+  return sharp(currentBuffer).composite([{
     input: region,
     left: coords.x,
     top: coords.y,
@@ -127,6 +133,9 @@ async function applyFill(
   coords: PixelCoordinates,
   color: string
 ): Promise<sharp.Sharp> {
+  // First convert to buffer to get the current state
+  const currentBuffer = await image.toBuffer();
+
   // Convert hex color to RGBA
   const hex = color.replace('#', '');
   const r = parseInt(hex.slice(0, 2), 16);
@@ -144,7 +153,8 @@ async function applyFill(
     }
   }).png().toBuffer();
 
-  return image.composite([{
+  // Composite fill onto current image
+  return sharp(currentBuffer).composite([{
     input: overlay,
     left: coords.x,
     top: coords.y,
