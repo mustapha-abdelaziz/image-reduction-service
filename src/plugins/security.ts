@@ -1,7 +1,7 @@
 import { FastifyPluginAsync } from 'fastify';
 import { getConfig } from '@/config/env.js';
 
-const securityPlugin: FastifyPluginAsync = async (fastify) => {
+const securityPlugin: FastifyPluginAsync = async fastify => {
   const config = getConfig();
 
   // Skip authentication for health endpoint

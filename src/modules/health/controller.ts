@@ -1,7 +1,7 @@
 import { FastifyPluginAsync } from 'fastify';
 import sharp from 'sharp';
 
-const healthController: FastifyPluginAsync = async (fastify) => {
+const healthController: FastifyPluginAsync = async fastify => {
   /**
    * GET /health - Health check endpoint
    */
@@ -60,9 +60,7 @@ const healthController: FastifyPluginAsync = async (fastify) => {
         timestamp: new Date().toISOString(),
       };
 
-      return reply
-        .code(ok ? 200 : 503)
-        .send(response);
+      return reply.code(ok ? 200 : 503).send(response);
     } catch (error) {
       return reply.status(503).send({
         ok: false,

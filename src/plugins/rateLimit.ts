@@ -2,13 +2,13 @@ import { FastifyPluginAsync } from 'fastify';
 import rateLimit from '@fastify/rate-limit';
 import { getConfig } from '@/config/env.js';
 
-const rateLimitPlugin: FastifyPluginAsync = async (fastify) => {
+const rateLimitPlugin: FastifyPluginAsync = async fastify => {
   const config = getConfig();
 
   await fastify.register(rateLimit, {
     max: config.RATE_LIMIT_POINTS,
     timeWindow: config.RATE_LIMIT_WINDOW_MS,
-    keyGenerator: (request) => {
+    keyGenerator: request => {
       // Rate limit by API key if available, otherwise by IP
       return request.user?.apiKey || request.ip;
     },

@@ -22,10 +22,13 @@ export function generateRequestHash(inputs: Record<string, unknown>): string {
   // Sort keys to ensure deterministic ordering
   const sortedInputs = Object.keys(inputs)
     .sort()
-    .reduce((acc, key) => {
-      acc[key] = inputs[key];
-      return acc;
-    }, {} as Record<string, unknown>);
+    .reduce(
+      (acc, key) => {
+        acc[key] = inputs[key];
+        return acc;
+      },
+      {} as Record<string, unknown>
+    );
 
   const inputString = JSON.stringify(sortedInputs);
   return createHash('sha256').update(inputString).digest('hex');
@@ -35,7 +38,8 @@ export function generateRequestHash(inputs: Record<string, unknown>): string {
  * Generate secure random string for job IDs, etc.
  */
 export function generateRandomId(length: number = 16): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const chars =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
 
   for (let i = 0; i < length; i++) {

@@ -17,10 +17,12 @@ export const PIXELATE_SIZE_MAP = {
 } as const;
 
 // Color schema for fill operations
-export const colorSchema = z.string().regex(
-  /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/,
-  'Color must be in #RRGGBB or #RRGGBBAA format'
-);
+export const colorSchema = z
+  .string()
+  .regex(
+    /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/,
+    'Color must be in #RRGGBB or #RRGGBBAA format'
+  );
 
 // Coordinate schemas
 export const pixelCoordinatesSchema = z.object({

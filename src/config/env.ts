@@ -1,7 +1,9 @@
 import { z } from 'zod';
 
 const envSchema = z.object({
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  NODE_ENV: z
+    .enum(['development', 'production', 'test'])
+    .default('development'),
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
 
   // Image processing limits
@@ -46,11 +48,17 @@ export function loadConfig(): EnvConfig {
   } catch (error) {
     if (error instanceof z.ZodError) {
       const missingFields = error.errors
-        .filter((err: z.ZodIssue) => err.code === 'invalid_type' && err.received === 'undefined')
+        .filter(
+          (err: z.ZodIssue) =>
+            err.code === 'invalid_type' && err.received === 'undefined'
+        )
         .map((err: z.ZodIssue) => err.path.join('.'));
 
       const invalidFields = error.errors
-        .filter((err: z.ZodIssue) => err.code !== 'invalid_type' || err.received !== 'undefined')
+        .filter(
+          (err: z.ZodIssue) =>
+            err.code !== 'invalid_type' || err.received !== 'undefined'
+        )
         .map((err: z.ZodIssue) => `${err.path.join('.')}: ${err.message}`);
 
       let errorMessage = 'Environment configuration validation failed:\n';
@@ -63,7 +71,8 @@ export function loadConfig(): EnvConfig {
         errorMessage += `\nInvalid values:\n${invalidFields.map((f: string) => `  - ${f}`).join('\n')}`;
       }
 
-      errorMessage += '\n\nPlease check your .env file or environment variables.';
+      errorMessage +=
+        '\n\nPlease check your .env file or environment variables.';
 
       throw new Error(errorMessage);
     }
@@ -80,8 +89,14 @@ export function getConfig(): EnvConfig {
 
 // Validation helpers
 export function validateS3Config(config: EnvConfig): void {
-  const requiredS3Fields = ['S3_REGION', 'S3_ACCESS_KEY_ID', 'S3_SECRET_ACCESS_KEY'];
-  const missingFields = requiredS3Fields.filter(field => !config[field as keyof EnvConfig]);
+  const requiredS3Fields = [
+    'S3_REGION',
+    'S3_ACCESS_KEY_ID',
+    'S3_SECRET_ACCESS_KEY',
+  ];
+  const missingFields = requiredS3Fields.filter(
+    field => !config[field as keyof EnvConfig]
+  );
 
   if (missingFields.length > 0) {
     throw new Error(

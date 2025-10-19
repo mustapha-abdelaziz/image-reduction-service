@@ -5,16 +5,22 @@ import {
   ProcessedImage,
   ImageMetadata,
   ImageFormat,
-  PixelCoordinates
+  PixelCoordinates,
 } from '@/modules/redaction/dtos.js';
 import { processCoordinates, ImageDimensions } from '@/utils/coords.js';
 import { generateETag } from '@/utils/hash.js';
 import { measureAsync } from '@/utils/timing.js';
-import { BLUR_SIZE_MAP, PIXELATE_SIZE_MAP } from '@/modules/redaction/schemas.js';
+import {
+  BLUR_SIZE_MAP,
+  PIXELATE_SIZE_MAP,
+} from '@/modules/redaction/schemas.js';
 import { getConfig } from '@/config/env.js';
 
 export class ImagePipelineError extends Error {
-  constructor(message: string, public cause?: Error) {
+  constructor(
+    message: string,
+    public cause?: Error
+  ) {
     super(message);
     this.name = 'ImagePipelineError';
   }
@@ -77,17 +83,19 @@ async function applyBlur(
       left: coords.x,
       top: coords.y,
       width: coords.width,
-      height: coords.height
+      height: coords.height,
     })
     .blur(sigma)
     .toBuffer();
 
   // Composite blurred region back onto current image
-  return sharp(currentBuffer).composite([{
-    input: region,
-    left: coords.x,
-    top: coords.y,
-  }]);
+  return sharp(currentBuffer).composite([
+    {
+      input: region,
+      left: coords.x,
+      top: coords.y,
+    },
+  ]);
 }
 
 /**
@@ -111,18 +119,20 @@ async function applyPixelate(
       left: coords.x,
       top: coords.y,
       width: coords.width,
-      height: coords.height
+      height: coords.height,
     })
     .resize(pixelWidth, pixelHeight, { kernel: 'nearest' })
     .resize(coords.width, coords.height, { kernel: 'nearest' })
     .toBuffer();
 
   // Composite pixelated region back onto current image
-  return sharp(currentBuffer).composite([{
-    input: region,
-    left: coords.x,
-    top: coords.y,
-  }]);
+  return sharp(currentBuffer).composite([
+    {
+      input: region,
+      left: coords.x,
+      top: coords.y,
+    },
+  ]);
 }
 
 /**
@@ -149,17 +159,21 @@ async function applyFill(
       width: coords.width,
       height: coords.height,
       channels: 4,
-      background: { r, g, b, alpha: a / 255 }
-    }
-  }).png().toBuffer();
+      background: { r, g, b, alpha: a / 255 },
+    },
+  })
+    .png()
+    .toBuffer();
 
   // Composite fill onto current image
-  return sharp(currentBuffer).composite([{
-    input: overlay,
-    left: coords.x,
-    top: coords.y,
-    blend: 'over',
-  }]);
+  return sharp(currentBuffer).composite([
+    {
+      input: overlay,
+      left: coords.x,
+      top: coords.y,
+      blend: 'over',
+    },
+  ]);
 }
 
 /**
@@ -181,7 +195,9 @@ async function applyOperation(
       return applyFill(image, coords, operation.color);
 
     default:
-      throw new ImagePipelineError(`Unknown operation type: ${(operation as any).type}`);
+      throw new ImagePipelineError(
+        `Unknown operation type: ${(operation as any).type}`
+      );
   }
 }
 

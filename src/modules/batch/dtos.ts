@@ -1,5 +1,8 @@
 import { z } from 'zod';
-import { batchRequestSchema, batchResponseSchema } from '@/modules/redaction/schemas.js';
+import {
+  batchRequestSchema,
+  batchResponseSchema,
+} from '@/modules/redaction/schemas.js';
 
 export type BatchRequest = z.infer<typeof batchRequestSchema>;
 export type BatchResponse = z.infer<typeof batchResponseSchema>;

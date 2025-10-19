@@ -15,12 +15,15 @@ async function start() {
       host: '0.0.0.0',
     });
 
-    app.log.info({
-      port: config.PORT,
-      environment: config.NODE_ENV,
-      maxBytes: config.MAX_BYTES,
-      maxPixels: config.MAX_PIXELS,
-    }, `Server listening at ${address}`);
+    app.log.info(
+      {
+        port: config.PORT,
+        environment: config.NODE_ENV,
+        maxBytes: config.MAX_BYTES,
+        maxPixels: config.MAX_PIXELS,
+      },
+      `Server listening at ${address}`
+    );
 
     // Graceful shutdown
     const shutdown = async (signal: string) => {
@@ -29,14 +32,16 @@ async function start() {
         await app.close();
         process.exit(0);
       } catch (error) {
-        app.log.error({ error: error instanceof Error ? error.message : String(error) }, 'Error during shutdown');
+        app.log.error(
+          { error: error instanceof Error ? error.message : String(error) },
+          'Error during shutdown'
+        );
         process.exit(1);
       }
     };
 
     process.on('SIGTERM', () => shutdown('SIGTERM'));
     process.on('SIGINT', () => shutdown('SIGINT'));
-
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);
@@ -45,7 +50,7 @@ async function start() {
 
 // Only start if this file is run directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  start().catch((error) => {
+  start().catch(error => {
     console.error('Unhandled error during startup:', error);
     process.exit(1);
   });

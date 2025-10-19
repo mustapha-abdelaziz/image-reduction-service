@@ -2,9 +2,13 @@ import {
   Region,
   ProcessedImage,
   ImageFormat,
-  MultipartRedactionRequest
+  MultipartRedactionRequest,
 } from '@/modules/redaction/dtos.js';
-import { processImage, getImageMetadata, validateImageDimensions } from '@/modules/redaction/pipeline.js';
+import {
+  processImage,
+  getImageMetadata,
+  validateImageDimensions,
+} from '@/modules/redaction/pipeline.js';
 import { validateMimeType, validateFileSize } from '@/utils/mime.js';
 import { getConfig } from '@/config/env.js';
 
@@ -64,11 +68,7 @@ export class RedactionService {
       validateImageDimensions(metadata);
     } catch (error) {
       if (error instanceof Error && error.message.includes('exceeds maximum')) {
-        throw new RedactionServiceError(
-          error.message,
-          'IMAGE_TOO_LARGE',
-          413
-        );
+        throw new RedactionServiceError(error.message, 'IMAGE_TOO_LARGE', 413);
       }
 
       throw new RedactionServiceError(
@@ -118,7 +118,8 @@ export class RedactionService {
       this.validateRegions(regions);
 
       // Set defaults
-      const format = options.format || this.config.DEFAULT_FORMAT as ImageFormat;
+      const format =
+        options.format || (this.config.DEFAULT_FORMAT as ImageFormat);
       const quality = options.quality || this.config.DEFAULT_QUALITY;
 
       // Process the image
@@ -163,6 +164,11 @@ export class RedactionService {
       quality: request.output?.quality,
     };
 
-    return this.redactImage(fileBuffer, request.regions, options, declaredMimeType);
+    return this.redactImage(
+      fileBuffer,
+      request.regions,
+      options,
+      declaredMimeType
+    );
   }
 }

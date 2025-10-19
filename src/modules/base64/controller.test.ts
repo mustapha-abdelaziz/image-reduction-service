@@ -16,7 +16,10 @@ describe('Base64 Redaction Controller', () => {
   });
 
   // Helper function to create a test image
-  async function createTestImage(width: number, height: number): Promise<string> {
+  async function createTestImage(
+    width: number,
+    height: number
+  ): Promise<string> {
     const buffer = await sharp({
       create: {
         width,

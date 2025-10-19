@@ -1,4 +1,10 @@
-import { Coordinates, PixelCoordinates, NormalizedCoordinates, isPixelCoordinates, isNormalizedCoordinates } from '@/modules/redaction/dtos.js';
+import {
+  Coordinates,
+  PixelCoordinates,
+  NormalizedCoordinates,
+  isPixelCoordinates,
+  isNormalizedCoordinates,
+} from '@/modules/redaction/dtos.js';
 
 export interface ImageDimensions {
   width: number;
@@ -97,15 +103,24 @@ export function validateCoordinates(
       const { x_norm, y_norm, w_norm, h_norm } = coords;
 
       if (x_norm < 0 || x_norm > 1 || y_norm < 0 || y_norm > 1) {
-        return { valid: false, error: 'Normalized coordinates must be between 0 and 1' };
+        return {
+          valid: false,
+          error: 'Normalized coordinates must be between 0 and 1',
+        };
       }
 
       if (w_norm <= 0 || h_norm <= 0) {
-        return { valid: false, error: 'Normalized width and height must be positive' };
+        return {
+          valid: false,
+          error: 'Normalized width and height must be positive',
+        };
       }
 
       if (x_norm + w_norm > 1 || y_norm + h_norm > 1) {
-        return { valid: false, error: 'Normalized region exceeds image bounds' };
+        return {
+          valid: false,
+          error: 'Normalized region exceeds image bounds',
+        };
       }
 
       return { valid: true };
@@ -113,6 +128,9 @@ export function validateCoordinates(
 
     return { valid: false, error: 'Invalid coordinate type' };
   } catch (error) {
-    return { valid: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    return {
+      valid: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
   }
 }

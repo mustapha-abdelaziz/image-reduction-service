@@ -1,4 +1,8 @@
-import { S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  GetObjectCommand,
+  PutObjectCommand,
+} from '@aws-sdk/client-s3';
 import { getConfig, validateS3Config } from '@/config/env.js';
 import { getOutputMimeType } from '@/utils/mime.js';
 import { Readable } from 'stream';
@@ -35,7 +39,10 @@ export class S3Service {
   constructor() {
     // Validate S3 configuration only if S3 credentials are partially configured
     // This allows the service to start in test mode without S3
-    const hasAnyS3Config = this.config.S3_REGION || this.config.S3_ACCESS_KEY_ID || this.config.S3_SECRET_ACCESS_KEY;
+    const hasAnyS3Config =
+      this.config.S3_REGION ||
+      this.config.S3_ACCESS_KEY_ID ||
+      this.config.S3_SECRET_ACCESS_KEY;
 
     if (hasAnyS3Config) {
       validateS3Config(this.config);
@@ -43,10 +50,13 @@ export class S3Service {
 
     this.client = new S3Client({
       region: this.config.S3_REGION || 'us-east-1',
-      credentials: this.config.S3_ACCESS_KEY_ID && this.config.S3_SECRET_ACCESS_KEY ? {
-        accessKeyId: this.config.S3_ACCESS_KEY_ID,
-        secretAccessKey: this.config.S3_SECRET_ACCESS_KEY,
-      } : undefined,
+      credentials:
+        this.config.S3_ACCESS_KEY_ID && this.config.S3_SECRET_ACCESS_KEY
+          ? {
+              accessKeyId: this.config.S3_ACCESS_KEY_ID,
+              secretAccessKey: this.config.S3_SECRET_ACCESS_KEY,
+            }
+          : undefined,
       endpoint: this.config.S3_ENDPOINT,
       forcePathStyle: !!this.config.S3_ENDPOINT, // Required for MinIO/custom endpoints
     });
@@ -179,7 +189,10 @@ export class S3Service {
       await this.client.send(command);
       return true;
     } catch (error) {
-      if (error instanceof Error && (error.name === 'NoSuchKey' || error.name === 'NotFound')) {
+      if (
+        error instanceof Error &&
+        (error.name === 'NoSuchKey' || error.name === 'NotFound')
+      ) {
         return false;
       }
 
@@ -192,7 +205,9 @@ export class S3Service {
    * Generate S3 object URL for reference
    */
   getObjectUrl(bucket: string, key: string): string {
-    const endpoint = this.config.S3_ENDPOINT || `https://s3.${this.config.S3_REGION}.amazonaws.com`;
+    const endpoint =
+      this.config.S3_ENDPOINT ||
+      `https://s3.${this.config.S3_REGION}.amazonaws.com`;
     return `${endpoint}/${bucket}/${key}`;
   }
 

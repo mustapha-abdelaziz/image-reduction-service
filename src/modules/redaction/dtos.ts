@@ -41,7 +41,10 @@ export type FillOperation = {
   color: string;
 };
 
-export type RedactionOperation = BlurOperation | PixelateOperation | FillOperation;
+export type RedactionOperation =
+  | BlurOperation
+  | PixelateOperation
+  | FillOperation;
 
 // Region type
 export type Region = z.infer<typeof regionSchema>;
@@ -53,7 +56,9 @@ export type OutputConfig = z.infer<typeof outputConfigSchema>;
 export type S3Object = z.infer<typeof s3ObjectSchema>;
 
 // Request types
-export type MultipartRedactionRequest = z.infer<typeof multipartRedactionRequestSchema>;
+export type MultipartRedactionRequest = z.infer<
+  typeof multipartRedactionRequestSchema
+>;
 export type S3RedactionRequest = z.infer<typeof s3RedactionRequestSchema>;
 export type BatchItem = z.infer<typeof batchItemSchema>;
 export type BatchRequest = z.infer<typeof batchRequestSchema>;
@@ -109,10 +114,21 @@ export interface Job {
 }
 
 // Type guards
-export function isPixelCoordinates(coords: Coordinates): coords is PixelCoordinates {
-  return 'x' in coords && 'y' in coords && 'width' in coords && 'height' in coords;
+export function isPixelCoordinates(
+  coords: Coordinates
+): coords is PixelCoordinates {
+  return (
+    'x' in coords && 'y' in coords && 'width' in coords && 'height' in coords
+  );
 }
 
-export function isNormalizedCoordinates(coords: Coordinates): coords is NormalizedCoordinates {
-  return 'x_norm' in coords && 'y_norm' in coords && 'w_norm' in coords && 'h_norm' in coords;
+export function isNormalizedCoordinates(
+  coords: Coordinates
+): coords is NormalizedCoordinates {
+  return (
+    'x_norm' in coords &&
+    'y_norm' in coords &&
+    'w_norm' in coords &&
+    'h_norm' in coords
+  );
 }

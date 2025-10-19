@@ -1,5 +1,8 @@
 import { Job, JobItem } from '@/modules/redaction/dtos.js';
-import { S3RedactionRequest, S3RedactionResponse } from '@/modules/redaction/dtos.js';
+import {
+  S3RedactionRequest,
+  S3RedactionResponse,
+} from '@/modules/redaction/dtos.js';
 import { generateRandomId } from '@/utils/hash.js';
 
 /**
@@ -73,11 +76,7 @@ export class JobStore {
   /**
    * Update job item
    */
-  updateJobItem(
-    jobId: string,
-    itemId: string,
-    update: Partial<JobItem>
-  ): void {
+  updateJobItem(jobId: string, itemId: string, update: Partial<JobItem>): void {
     const job = this.jobs.get(jobId);
     if (!job) {
       throw new Error(`Job ${jobId} not found`);
@@ -139,7 +138,9 @@ export class JobStore {
    * Update job progress and overall status
    */
   private updateJobProgress(job: Job): void {
-    const completed = job.items.filter(item => item.status === 'completed').length;
+    const completed = job.items.filter(
+      item => item.status === 'completed'
+    ).length;
     const failed = job.items.filter(item => item.status === 'failed').length;
 
     job.progress.completed = completed;
@@ -189,8 +190,9 @@ export class JobStore {
 
     // If still over limit, delete oldest jobs
     if (this.jobs.size - jobsToDelete.length > this.MAX_JOBS) {
-      const sortedJobs = Array.from(this.jobs.entries())
-        .sort(([, a], [, b]) => a.createdAt.getTime() - b.createdAt.getTime());
+      const sortedJobs = Array.from(this.jobs.entries()).sort(
+        ([, a], [, b]) => a.createdAt.getTime() - b.createdAt.getTime()
+      );
 
       const excess = this.jobs.size - jobsToDelete.length - this.MAX_JOBS;
       for (let i = 0; i < excess; i++) {

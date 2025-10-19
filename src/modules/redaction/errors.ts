@@ -73,11 +73,17 @@ export function normalizeError(error: unknown): RedactionError {
       return new ValidationError(error.message);
     }
 
-    if (error.name === 'PayloadTooLargeError' || error.message.includes('exceeds maximum')) {
+    if (
+      error.name === 'PayloadTooLargeError' ||
+      error.message.includes('exceeds maximum')
+    ) {
       return new LimitExceededError(error.message);
     }
 
-    if (error.message.includes('MIME') || error.message.includes('Unsupported')) {
+    if (
+      error.message.includes('MIME') ||
+      error.message.includes('Unsupported')
+    ) {
       return new UnsupportedMediaError(error.message);
     }
 

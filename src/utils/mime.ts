@@ -28,10 +28,10 @@ export const MIME_TO_EXTENSION: Record<string, string> = {
  * File extension to MIME type mapping
  */
 export const EXTENSION_TO_MIME: Record<string, string> = {
-  'jpg': 'image/jpeg',
-  'jpeg': 'image/jpeg',
-  'png': 'image/png',
-  'webp': 'image/webp',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
 };
 
 /**
@@ -75,7 +75,10 @@ export async function validateMimeType(
   } catch (error) {
     return {
       valid: false,
-      error: error instanceof Error ? error.message : 'Unknown error during MIME type validation',
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Unknown error during MIME type validation',
     };
   }
 }
@@ -104,7 +107,10 @@ export function getMimeTypeForExtension(extension: string): string | undefined {
 /**
  * Validate file size
  */
-export function validateFileSize(buffer: Buffer, maxSize: number): { valid: boolean; error?: string } {
+export function validateFileSize(
+  buffer: Buffer,
+  maxSize: number
+): { valid: boolean; error?: string } {
   if (buffer.length > maxSize) {
     return {
       valid: false,

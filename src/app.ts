@@ -1,4 +1,9 @@
-import fastify, { FastifyInstance, FastifyRequest, FastifyReply, FastifyError } from 'fastify';
+import fastify, {
+  FastifyInstance,
+  FastifyRequest,
+  FastifyReply,
+  FastifyError,
+} from 'fastify';
 import { getConfig } from '@/config/env.js';
 import { normalizeError } from '@/modules/redaction/errors.js';
 
@@ -8,12 +13,15 @@ export async function createApp(): Promise<FastifyInstance> {
   const app = fastify({
     logger: {
       level: config.LOG_LEVEL,
-      transport: config.NODE_ENV === 'development' ? {
-        target: 'pino-pretty',
-        options: {
-          colorize: true,
-        },
-      } : undefined,
+      transport:
+        config.NODE_ENV === 'development'
+          ? {
+              target: 'pino-pretty',
+              options: {
+                colorize: true,
+              },
+            }
+          : undefined,
     },
     trustProxy: true,
     bodyLimit: config.MAX_BYTES,
@@ -52,28 +60,37 @@ export async function createApp(): Promise<FastifyInstance> {
   });
 
   // Global error handler
-  app.setErrorHandler(async (error: FastifyError, request: FastifyRequest, reply: FastifyReply) => {
-    const traceId = request.traceId || 'unknown';
+  app.setErrorHandler(
+    async (
+      error: FastifyError,
+      request: FastifyRequest,
+      reply: FastifyReply
+    ) => {
+      const traceId = request.traceId || 'unknown';
 
-    // Log error with trace context
-    request.log.error({
-      error: error.message,
-      stack: error.stack,
-      traceId,
-      url: request.url,
-      method: request.method,
-    }, 'Request error');
+      // Log error with trace context
+      request.log.error(
+        {
+          error: error.message,
+          stack: error.stack,
+          traceId,
+          url: request.url,
+          method: request.method,
+        },
+        'Request error'
+      );
 
-    // Use normalized error handling
-    const normalizedErr = normalizeError(error);
+      // Use normalized error handling
+      const normalizedErr = normalizeError(error);
 
-    return reply.status(normalizedErr.statusCode).send({
-      code: normalizedErr.code,
-      message: normalizedErr.message,
-      traceId,
-      details: normalizedErr.details,
-    });
-  });
+      return reply.status(normalizedErr.statusCode).send({
+        code: normalizedErr.code,
+        message: normalizedErr.message,
+        traceId,
+        details: normalizedErr.details,
+      });
+    }
+  );
 
   return app;
 }

@@ -1,7 +1,13 @@
 import { FastifyPluginAsync } from 'fastify';
-import { register, collectDefaultMetrics, Counter, Histogram, Gauge } from 'prom-client';
+import {
+  register,
+  collectDefaultMetrics,
+  Counter,
+  Histogram,
+  Gauge,
+} from 'prom-client';
 
-const metricsPlugin: FastifyPluginAsync = async (fastify) => {
+const metricsPlugin: FastifyPluginAsync = async fastify => {
   // Clear any existing metrics to avoid duplicate registration
   register.clear();
 
@@ -50,7 +56,7 @@ const metricsPlugin: FastifyPluginAsync = async (fastify) => {
   }, 5000);
 
   // Hook to track request metrics
-  fastify.addHook('onRequest', async (request) => {
+  fastify.addHook('onRequest', async request => {
     activeRequests.inc();
     request.requestStartTime = Date.now();
   });
@@ -58,7 +64,8 @@ const metricsPlugin: FastifyPluginAsync = async (fastify) => {
   fastify.addHook('onResponse', async (request, reply) => {
     activeRequests.dec();
 
-    const duration = (Date.now() - (request.requestStartTime || Date.now())) / 1000;
+    const duration =
+      (Date.now() - (request.requestStartTime || Date.now())) / 1000;
     const labels = {
       method: request.method,
       route: request.routeOptions?.url || request.url,
