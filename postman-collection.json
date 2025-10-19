@@ -1,0 +1,335 @@
+{
+  "info": {
+    "name": "Image Redactor Service",
+    "description": "Production-ready image redaction microservice with blur, pixelate, and fill operations",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health & Monitoring",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Health Ready",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health/ready",
+              "host": ["{{baseUrl}}"],
+              "path": ["health", "ready"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Health Live",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health/live",
+              "host": ["{{baseUrl}}"],
+              "path": ["health", "live"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/metrics",
+              "host": ["{{baseUrl}}"],
+              "path": ["metrics"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Redaction",
+      "item": [
+        {
+          "name": "Base64 Redaction - Blur ✨ NEW!",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"image\": \"<base64-image-data>\",\n  \"regions\": [\n    {\n      \"type\": \"blur\",\n      \"coords\": {\"x\": 100, \"y\": 100, \"width\": 400, \"height\": 300},\n      \"strength\": \"high\"\n    }\n  ],\n  \"output\": {\n    \"format\": \"jpeg\",\n    \"quality\": 90\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/redact/base64",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "redact", "base64"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "S3 Redaction - Blur",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"input\": {\n    \"bucket\": \"source-bucket\",\n    \"key\": \"images/photo.jpg\"\n  },\n  \"output\": {\n    \"bucket\": \"dest-bucket\",\n    \"key\": \"redacted/photo-blur.jpg\",\n    \"format\": \"webp\",\n    \"quality\": 85\n  },\n  \"regions\": [\n    {\n      \"type\": \"blur\",\n      \"coords\": {\n        \"x\": 0.2,\n        \"y\": 0.3,\n        \"width\": 0.4,\n        \"height\": 0.3\n      },\n      \"strength\": \"high\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/redact/s3",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "redact", "s3"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "S3 Redaction - Pixelate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"input\": {\n    \"bucket\": \"source-bucket\",\n    \"key\": \"images/photo.jpg\"\n  },\n  \"output\": {\n    \"bucket\": \"dest-bucket\",\n    \"key\": \"redacted/photo-pixelate.jpg\",\n    \"format\": \"jpeg\",\n    \"quality\": 90\n  },\n  \"regions\": [\n    {\n      \"type\": \"pixelate\",\n      \"coords\": {\n        \"x\": 100,\n        \"y\": 100,\n        \"width\": 300,\n        \"height\": 200\n      },\n      \"blockSize\": 24\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/redact/s3",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "redact", "s3"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "S3 Redaction - Fill",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"input\": {\n    \"bucket\": \"source-bucket\",\n    \"key\": \"images/photo.jpg\"\n  },\n  \"output\": {\n    \"bucket\": \"dest-bucket\",\n    \"key\": \"redacted/photo-fill.jpg\"\n  },\n  \"regions\": [\n    {\n      \"type\": \"fill\",\n      \"coords\": {\n        \"x\": 0,\n        \"y\": 0,\n        \"width\": 400,\n        \"height\": 150\n      },\n      \"color\": \"#FF0000\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/redact/s3",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "redact", "s3"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "S3 Redaction - Multiple Operations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"input\": {\n    \"bucket\": \"source-bucket\",\n    \"key\": \"images/photo.jpg\"\n  },\n  \"output\": {\n    \"bucket\": \"dest-bucket\",\n    \"key\": \"redacted/photo-multi.jpg\"\n  },\n  \"regions\": [\n    {\n      \"type\": \"blur\",\n      \"coords\": {\"x\": 100, \"y\": 100, \"width\": 200, \"height\": 150},\n      \"strength\": \"high\"\n    },\n    {\n      \"type\": \"pixelate\",\n      \"coords\": {\"x\": 400, \"y\": 300, \"width\": 300, \"height\": 100},\n      \"blockSize\": 12\n    },\n    {\n      \"type\": \"fill\",\n      \"coords\": {\"x\": 0, \"y\": 0, \"width\": 150, \"height\": 80},\n      \"color\": \"#000000\"\n    }\n  ],\n  \"idempotency_key\": \"unique-request-123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/redact/s3",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "redact", "s3"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Batch Processing",
+      "item": [
+        {
+          "name": "Create Batch Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"input\": {\"bucket\": \"source-bucket\", \"key\": \"image1.jpg\"},\n      \"output\": {\"bucket\": \"dest-bucket\", \"key\": \"redacted1.jpg\"},\n      \"regions\": [\n        {\n          \"type\": \"blur\",\n          \"coords\": {\"x\": 100, \"y\": 100, \"width\": 200, \"height\": 200},\n          \"strength\": \"medium\"\n        }\n      ]\n    },\n    {\n      \"input\": {\"bucket\": \"source-bucket\", \"key\": \"image2.jpg\"},\n      \"output\": {\"bucket\": \"dest-bucket\", \"key\": \"redacted2.jpg\"},\n      \"regions\": [\n        {\n          \"type\": \"pixelate\",\n          \"coords\": {\"x\": 50, \"y\": 50, \"width\": 150, \"height\": 150},\n          \"blockSize\": 12\n        }\n      ]\n    }\n  ],\n  \"webhook_url\": \"https://your-app.com/webhook\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/redact/batch",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "redact", "batch"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Save job ID for status check",
+                  "if (pm.response.code === 202) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"jobId\", jsonData.jobId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Batch Job Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/redact/batch/{{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "redact", "batch", "{{jobId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Authentication Tests",
+      "item": [
+        {
+          "name": "Missing API Key (Should Fail)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"input\": {\"bucket\": \"test\", \"key\": \"test.jpg\"},\n  \"output\": {\"bucket\": \"test\", \"key\": \"out.jpg\"},\n  \"regions\": [{\"type\": \"blur\", \"coords\": {\"x\": 0, \"y\": 0, \"width\": 100, \"height\": 100}, \"strength\": \"low\"}]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/redact/s3",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "redact", "s3"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid API Key (Should Fail)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "wrong-key-12345"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"input\": {\"bucket\": \"test\", \"key\": \"test.jpg\"},\n  \"output\": {\"bucket\": \"test\", \"key\": \"out.jpg\"},\n  \"regions\": [{\"type\": \"blur\", \"coords\": {\"x\": 0, \"y\": 0, \"width\": 100, \"height\": 100}, \"strength\": \"low\"}]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/redact/s3",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "redact", "s3"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "apiKey",
+      "value": "test-key",
+      "type": "string"
+    },
+    {
+      "key": "jobId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

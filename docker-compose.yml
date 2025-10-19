@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # Image redactor service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - MAX_BYTES=10485760
+      - MAX_PIXELS=8294400
+      - MAX_REGIONS=20
+      - DEFAULT_FORMAT=webp
+      - DEFAULT_QUALITY=85
+      - RATE_LIMIT_POINTS=60
+      - RATE_LIMIT_WINDOW_MS=60000
+      - API_KEY=${API_KEY:-dev-123}
+      - S3_REGION=${S3_REGION}
+      - S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
+      - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - LOG_LEVEL=info
+      - METRICS_ENABLED=true
+      - TRACING_ENABLED=true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # MinIO (S3-compatible object storage for local development)
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
+  # MinIO client for bucket setup
+  minio-setup:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin;
+      /usr/bin/mc mb myminio/test-input-bucket || true;
+      /usr/bin/mc mb myminio/test-output-bucket || true;
+      /usr/bin/mc policy set download myminio/test-input-bucket;
+      /usr/bin/mc policy set download myminio/test-output-bucket;
+      echo 'MinIO buckets created successfully';
+      "
+
+volumes:
+  minio-data:
+    driver: local

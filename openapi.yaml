@@ -1,0 +1,405 @@
+openapi: 3.0.3
+info:
+  title: Image Redactor Service API
+  version: 1.0.0
+  description: High-throughput image redaction microservice with blur, pixelation, and fill operations
+  contact:
+    email: your-email@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000
+    description: Local development
+  - url: https://api.example.com
+    description: Production
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      tags: [Health]
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /v1/redact:
+    post:
+      summary: Redact image (multipart upload)
+      tags: [Redaction]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+                - ops
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Image file (PNG, JPEG, or WebP, ≤10MB)
+                ops:
+                  type: string
+                  description: JSON string with redaction operations
+                  example: '{"regions":[{"coordinates":{"x":100,"y":100,"width":200,"height":150},"operation":{"type":"blur","size":"M"}}],"output":{"format":"webp","quality":85}}'
+      responses:
+        '200':
+          description: Redacted image
+          headers:
+            ETag:
+              schema:
+                type: string
+              description: SHA256 hash of output image
+            X-Process-Ms:
+              schema:
+                type: integer
+              description: Processing time in milliseconds
+          content:
+            image/webp:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '415':
+          $ref: '#/components/responses/UnsupportedMedia'
+
+  /v1/redact/s3:
+    post:
+      summary: S3-to-S3 redaction
+      tags: [Redaction]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/S3RedactionRequest'
+      responses:
+        '200':
+          description: Redaction completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/S3RedactionResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /v1/redact/batch:
+    post:
+      summary: Batch redaction
+      tags: [Batch]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchRequest'
+      responses:
+        '202':
+          description: Batch job accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchResponse'
+
+  /v1/redact/batch/{jobId}:
+    get:
+      summary: Get batch job status
+      tags: [Batch]
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Job status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobStatus'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        sharp:
+          type: boolean
+        formats:
+          type: object
+          properties:
+            webp:
+              type: boolean
+            jpeg:
+              type: boolean
+        version:
+          type: string
+
+    S3RedactionRequest:
+      type: object
+      required:
+        - input
+        - output
+        - regions
+      properties:
+        input:
+          $ref: '#/components/schemas/S3Object'
+        output:
+          allOf:
+            - $ref: '#/components/schemas/S3Object'
+            - type: object
+              properties:
+                format:
+                  type: string
+                  enum: [webp, jpeg]
+                quality:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+        regions:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/Region'
+        idempotency_key:
+          type: string
+
+    S3Object:
+      type: object
+      required:
+        - bucket
+        - key
+      properties:
+        bucket:
+          type: string
+        key:
+          type: string
+
+    Region:
+      type: object
+      required:
+        - coordinates
+        - operation
+      properties:
+        coordinates:
+          oneOf:
+            - $ref: '#/components/schemas/PixelCoordinates'
+            - $ref: '#/components/schemas/NormalizedCoordinates'
+        operation:
+          oneOf:
+            - $ref: '#/components/schemas/BlurOperation'
+            - $ref: '#/components/schemas/PixelateOperation'
+            - $ref: '#/components/schemas/FillOperation'
+
+    PixelCoordinates:
+      type: object
+      required: [x, y, width, height]
+      properties:
+        x:
+          type: integer
+          minimum: 0
+        y:
+          type: integer
+          minimum: 0
+        width:
+          type: integer
+          minimum: 1
+        height:
+          type: integer
+          minimum: 1
+
+    NormalizedCoordinates:
+      type: object
+      required: [x_norm, y_norm, w_norm, h_norm]
+      properties:
+        x_norm:
+          type: number
+          minimum: 0
+          maximum: 1
+        y_norm:
+          type: number
+          minimum: 0
+          maximum: 1
+        w_norm:
+          type: number
+          minimum: 0
+          maximum: 1
+        h_norm:
+          type: number
+          minimum: 0
+          maximum: 1
+
+    BlurOperation:
+      type: object
+      required: [type, size]
+      properties:
+        type:
+          type: string
+          enum: [blur]
+        size:
+          type: string
+          enum: [S, M, L]
+
+    PixelateOperation:
+      type: object
+      required: [type, size]
+      properties:
+        type:
+          type: string
+          enum: [pixelate]
+        size:
+          type: string
+          enum: [S, M, L]
+
+    FillOperation:
+      type: object
+      required: [type, color]
+      properties:
+        type:
+          type: string
+          enum: [fill]
+        color:
+          type: string
+          pattern: '^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$'
+
+    S3RedactionResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        output:
+          $ref: '#/components/schemas/S3Object'
+        processing_time_ms:
+          type: number
+        etag:
+          type: string
+
+    BatchRequest:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          minItems: 1
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/S3RedactionRequest'
+        webhook_url:
+          type: string
+          format: uri
+
+    BatchResponse:
+      type: object
+      properties:
+        job_id:
+          type: string
+        items_count:
+          type: integer
+        estimated_completion_ms:
+          type: integer
+
+    JobStatus:
+      type: object
+      properties:
+        job_id:
+          type: string
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        created_at:
+          type: string
+          format: date-time
+        started_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+        progress:
+          type: object
+          properties:
+            total:
+              type: integer
+            completed:
+              type: integer
+            failed:
+              type: integer
+            pending:
+              type: integer
+        items:
+          type: array
+          items:
+            type: object
+
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        traceId:
+          type: string
+        details:
+          type: object
+
+  responses:
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    PayloadTooLarge:
+      description: Payload too large
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    UnsupportedMedia:
+      description: Unsupported media type
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
